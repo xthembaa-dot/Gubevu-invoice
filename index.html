@@ -1115,6 +1115,14 @@ South Africa</textarea>
             window.print();
         }
 
+    window.addEventListener('orientationchange', function() {
+    setTimeout(function() {
+        document.body.style.display = 'none';
+        document.body.offsetHeight; // Trigger reflow
+        document.body.style.display = 'block';
+    }, 100);
+});
+
         // --- INITIALIZATION ---
         window.onload = function() {
             // Initialize document type
