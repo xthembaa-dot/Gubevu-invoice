@@ -509,27 +509,50 @@
             }
         }
 
-
-
-
-/* Fix for iOS Safari zoom */
-@supports (-webkit-touch-callout: none) {
+        /* SIMPLE MOBILE FIX - Just prevents breaking */
+@media (max-width: 768px) {
+    body {
+        padding: 15px !important;
+        overflow-x: auto; /* Allows horizontal scrolling */
+    }
+    
+    .container {
+        min-width: 800px; /* Forces desktop width */
+        transform: scale(0.95); /* Slightly smaller to fit */
+        transform-origin: top left;
+    }
+    
+    /* Prevent iOS zoom on inputs */
     .client-name-input,
     .client-address-textarea,
-    .document-selector,
-    .item-table td[contenteditable="true"] {
+    .document-selector {
         font-size: 16px !important;
+    }
+    
+    /* Make table scrollable */
+    .item-table {
+        overflow-x: auto;
+        display: block;
+    }
+    
+    /* Keep delete button visible */
+    .item-row:hover .delete-btn {
+        display: block !important;
+    }
+    
+    .delete-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 14px;
+        right: 8px;
+        top: 8px;
     }
 }
 
-/* Fix for Android Chrome */
-@media screen and (-webkit-min-device-pixel-ratio: 0) {
-    select:focus,
-    textarea:focus,
-    input:focus {
-        font-size: 16px !important;
-    }
-}
+
+
+
+
     </style>
 </head>
 <body>
