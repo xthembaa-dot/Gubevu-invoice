@@ -508,6 +508,268 @@
                 display: none !important;
             }
         }
+        /* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+    body {
+        padding: 10px 15px !important;
+        font-size: 14px;
+    }
+    
+    .container {
+        padding: 15px !important;
+        max-width: 100% !important;
+    }
+    
+    /* FIX HEADER - Stack logo and company details properly */
+    .header-section {
+        flex-direction: column;
+        align-items: flex-start;
+        position: relative;
+        padding-bottom: 15px;
+    }
+    
+    .company-details {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+    
+    .logo-container-right {
+        position: relative !important;
+        width: 150px;
+        height: 90px;
+        margin-top: 10px;
+        margin-bottom: 15px;
+        right: auto;
+        top: auto;
+        left: 0;
+    }
+    
+    /* FIX DOCUMENT HEADER - Stack vertically */
+    .document-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .document-type-container {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .document-details {
+        text-align: left;
+        width: 100%;
+    }
+    
+    /* FIX CLIENT SECTION - Full width on mobile */
+    .client-section {
+        width: 100% !important;
+        float: none;
+        margin-bottom: 20px;
+    }
+    
+    .client-name-input, 
+    .client-address-textarea {
+        font-size: 16px !important; /* Prevents zoom on iOS */
+    }
+    
+    .client-address-textarea {
+        min-height: 120px;
+        max-height: 150px;
+    }
+    
+    /* FIX ITEMS TABLE - Make scrollable */
+    .item-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .item-table th,
+    .item-table td {
+        min-width: 100px;
+        font-size: 13px;
+        padding: 10px 8px;
+    }
+    
+    .item-table th:nth-child(1),
+    .item-table td:nth-child(1) {
+        width: 70px;
+        min-width: 70px;
+    }
+    
+    .item-table th:nth-child(2),
+    .item-table td:nth-child(2) {
+        width: 250px;
+        min-width: 200px;
+        white-space: normal !important; /* Fix word-by-word issue */
+        word-break: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+    }
+    
+    .item-table th:nth-child(3),
+    .item-table td:nth-child(3) {
+        width: 60px;
+        min-width: 60px;
+    }
+    
+    .item-table th:nth-child(4),
+    .item-table td:nth-child(4) {
+        width: 100px;
+        min-width: 100px;
+    }
+    
+    .item-table th:nth-child(5),
+    .item-table td:nth-child(5) {
+        width: 100px;
+        min-width: 100px;
+    }
+    
+    /* Fix description cell text flow */
+    .description-cell {
+        white-space: normal !important;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        line-height: 1.4;
+        min-height: 50px;
+    }
+    
+    /* Fix delete button position on mobile */
+    .delete-btn {
+        right: 5px;
+        top: 5px;
+        width: 24px;
+        height: 24px;
+        font-size: 14px;
+    }
+    
+    /* FIX TOTALS SECTION - Center on mobile */
+    .totals-section {
+        justify-content: center;
+        margin-right: 0;
+    }
+    
+    .totals-box {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    /* FIX BANKING & ACCEPTANCE SECTIONS - Full width */
+    .banking-section,
+    .acceptance-section {
+        width: 100% !important;
+        float: none;
+        margin-left: 0;
+        margin-top: 30px;
+    }
+    
+    .banking-section {
+        margin-top: 25px;
+    }
+    
+    /* FIX ACCEPTANCE LINES - Stack vertically on mobile */
+    .acceptance-line {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .acceptance-item {
+        width: 100%;
+    }
+    
+    /* FIX ACTION BUTTONS - Stack vertically */
+    .action-buttons {
+        padding-top: 15px;
+        margin-top: 20px;
+    }
+    
+    .action-buttons button {
+        display: block;
+        width: 100%;
+        margin: 8px 0;
+        padding: 12px;
+        font-size: 15px;
+    }
+    
+    /* Fix clear float */
+    .clear-float {
+        clear: both;
+    }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+    body {
+        padding: 5px 10px !important;
+        font-size: 13px;
+    }
+    
+    .container {
+        padding: 10px !important;
+    }
+    
+    .company-details p {
+        font-size: 11px;
+        line-height: 1.2;
+    }
+    
+    .company-details p:first-child {
+        font-size: 13px;
+    }
+    
+    .logo-container-right {
+        width: 120px;
+        height: 70px;
+    }
+    
+    .document-title {
+        font-size: 16px;
+    }
+    
+    .document-selector {
+        width: 100%;
+    }
+    
+    .client-header,
+    .banking-header {
+        font-size: 14px;
+    }
+    
+    .item-table th,
+    .item-table td {
+        font-size: 12px;
+        padding: 8px 6px;
+    }
+    
+    .grand-total {
+        font-size: 14px;
+    }
+    
+    .acceptance-label {
+        font-size: 12px;
+    }
+}
+
+/* Fix for iOS Safari zoom */
+@supports (-webkit-touch-callout: none) {
+    .client-name-input,
+    .client-address-textarea,
+    .document-selector,
+    .item-table td[contenteditable="true"] {
+        font-size: 16px !important;
+    }
+}
+
+/* Fix for Android Chrome */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    select:focus,
+    textarea:focus,
+    input:focus {
+        font-size: 16px !important;
+    }
+}
     </style>
 </head>
 <body>
