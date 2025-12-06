@@ -62,7 +62,7 @@ body {
     overflow-x: hidden;
 }
 
-/* Background Image Containers */
+/* Background Image Containers 
 .bg-login {
     background: linear-gradient(rgba(18, 18, 18, 0.9), rgba(18, 18, 18, 0.95)),
                 url('../assets/bg-login.jpg');
@@ -93,6 +93,24 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+}
+
+*/
+
+.bg-login {
+    background: linear-gradient(135deg, #121212 0%, #1E1E1E 100%);
+}
+
+.bg-dashboard {
+    background: linear-gradient(135deg, #1A1A1A 0%, #2C2C2C 100%);
+}
+
+.bg-form {
+    background: linear-gradient(135deg, #2C2C2C 0%, #121212 100%);
+}
+
+.bg-preview {
+    background: linear-gradient(135deg, #121212 0%, #000000 100%);
 }
 
 /* Typography */
