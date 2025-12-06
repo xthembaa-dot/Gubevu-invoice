@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Client Information - Gubevu Electrical</title>
+    <link rel="stylesheet" href="mobile-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Additional styles for client form */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .page-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .page-title i {
+            color: var(--color-red);
+            font-size: 1.5rem;
+        }
+        
+        .step-info {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--color-dark-grey);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .step-title {
+            color: var(--color-red);
+            font-weight: 600;
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .step-description {
+            color: var(--color-text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-xl);
+        }
+        
+        .form-actions .btn {
+            flex: 1;
+        }
+        
+        .client-form {
+            width: 100%;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        
+        .client-type-selector {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .client-type-btn {
+            flex: 1;
+            padding: var(--spacing-md);
+            background: transparent;
+            border: 2px solid var(--color-dark-grey);
+            border-radius: var(--border-radius-md);
+            color: var(--color-text-secondary);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .client-type-btn.active {
+            border-color: var(--color-red);
+            background: rgba(229, 57, 53, 0.1);
+            color: var(--color-red);
+        }
+        
+        .client-type-btn i {
+            display: block;
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .saved-clients {
+            margin-top: var(--spacing-xl);
+        }
+        
+        .saved-clients-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .saved-client-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--color-dark-grey);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .saved-client-item:hover {
+            border-color: var(--color-red);
+            background: rgba(229, 57, 53, 0.1);
+        }
+        
+        .saved-client-name {
+            font-weight: 600;
+            color: var(--color-white);
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .saved-client-details {
+            color: var(--color-text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .form-note {
+            background: rgba(229, 57, 53, 0.1);
+            border: 1px solid var(--color-red);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-md);
+            margin-top: var(--spacing-lg);
+        }
+        
+        .form-note p {
+            color: var(--color-red);
+            font-size: 0.875rem;
+            margin-bottom: 0;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .form-row {
+                flex-direction: column;
+                gap: var(--spacing-md);
+            }
+            
+            .client-type-selector {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body class="bg-form">
+    <div class="app-container">
+        <!-- Header with Back Button -->
+        <div class="page-header">
+            <a href="02-dashboard.html" class="back-button">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <div class="step-indicator">
+                <div class="step active"></div>
+                <div class="step"></div>
+                <div class="step"></div>
+            </div>
+        </div>
+        
+        <!-- Step Information -->
+        <div class="step-info">
+            <h3 class="step-title">Step 1: Client Information</h3>
+            <p class="step-description" id="stepDescription">
+                <!-- Description will be set by JavaScript -->
+            </p>
+        </div>
+        
+        <!-- Client Type Selector -->
+        <div class="client-type-selector">
+            <button class="client-type-btn active" onclick="setClientType('new')">
+                <i class="fas fa-user-plus"></i>
+                New Client
+            </button>
+            <button class="client-type-btn" onclick="setClientType('existing')">
+                <i class="fas fa-users"></i>
+                Existing Client
+            </button>
+        </div>
+        
+        <!-- Client Form -->
+        <form id="clientForm" class="client-form">
+            <!-- New Client Form (Visible by default) -->
+            <div id="newClientForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="clientName" class="form-label">Client Name *</label>
+                        <input type="text" id="clientName" name="clientName" class="mobile-input" 
+                               placeholder="Enter client name" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="clientEmail" class="form-label">Email Address</label>
+                        <input type="email" id="clientEmail" name="clientEmail" class="mobile-input" 
+                               placeholder="client@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="clientPhone" class="form-label">Phone Number *</label>
+                        <input type="tel" id="clientPhone" name="clientPhone" class="mobile-input" 
+                               placeholder="(012) 345-6789" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="clientAddress" class="form-label">Address</label>
+                    <textarea id="clientAddress" name="clientAddress" class="mobile-input mobile-textarea" 
+                              placeholder="Street Address, City, Postal Code" rows="3"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="clientType" class="form-label">Client Type</label>
+                        <select id="clientType" name="clientType" class="mobile-input mobile-select">
+                            <option value="residential">Residential</option>
+                            <option value="commercial">Commercial</option>
+                            <option value="industrial">Industrial</option>
+                            <option value="government">Government</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="clientVAT" class="form-label">VAT Number</label>
+                        <input type="text" id="clientVAT" name="clientVAT" class="mobile-input" 
+                               placeholder="VAT Number (if applicable)">
+                    </div>
+                </div>
+                
+                <div class="form-note">
+                    <p><i class="fas fa-info-circle"></i> Fields marked with * are required</p>
+                </div>
+            </div>
+            
+            <!-- Existing Client Selector (Hidden by default) -->
+            <div id="existingClientForm" class="saved-clients" style="display: none;">
+                <h3 class="text-center">Select Existing Client</h3>
+                <p class="text-center text-grey">Choose from previously saved clients</p>
+                
+                <div class="saved-clients-list" id="savedClientsList">
+                    <!-- Saved clients will be loaded here -->
+                </div>
+                
+                <button type="button" class="btn btn-outline" onclick="setClientType('new')">
+                    <i class="fas fa-user-plus"></i> Add New Client Instead
+                </button>
+            </div>
+        </form>
+        
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <button type="button" class="btn btn-outline" onclick="goBack()">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+            <button type="button" class="btn btn-primary" onclick="saveClientAndContinue()">
+                Continue to Items <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+        
+        <!-- Footer -->
+        <div class="app-footer">
+            <p>Created by <strong>Iciko Systems</strong></p>
+        </div>
+    </div>
+    
+    <script src="shared-data.js"></script>
+    <script src="mobile-app.js"></script>
+    <script>
+        let currentClientType = 'new'; // 'new' or 'existing'
+        let documentType = 'invoice'; // 'invoice' or 'quote'
+        let selectedClientId = null;
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            const currentUser = GubevuData.getCurrentUser();
+            if (!currentUser) {
+                window.location.href = '01-login.html';
+                return;
+            }
+            
+            // Get document type from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            documentType = urlParams.get('type') || 'invoice';
+            
+            // Update step description based on document type
+            const description = document.getElementById('stepDescription');
+            if (documentType === 'quote') {
+                description.textContent = 'Enter client information for the quotation';
+            } else {
+                description.textContent = 'Enter client information for the invoice';
+            }
+            
+            // Load any existing session data
+            loadSavedFormData();
+            
+            // Load saved clients
+            loadSavedClients();
+            
+            // Update page title based on document type
+            updatePageTitle();
+            
+            // Focus on first input
+            document.getElementById('clientName').focus();
+        });
+        
+        // Update page title based on document type
+        function updatePageTitle() {
+            const title = documentType === 'quote' ? 'Create Quote' : 'Create Invoice';
+            document.title = `${title} - Client Information`;
+        }
+        
+        // Set client type (new or existing)
+        function setClientType(type) {
+            currentClientType = type;
+            
+            // Update button states
+            document.querySelectorAll('.client-type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (type === 'new') {
+                document.querySelector('.client-type-btn:first-child').classList.add('active');
+                document.getElementById('newClientForm').style.display = 'block';
+                document.getElementById('existingClientForm').style.display = 'none';
+            } else {
+                document.querySelector('.client-type-btn:last-child').classList.add('active');
+                document.getElementById('newClientForm').style.display = 'none';
+                document.getElementById('existingClientForm').style.display = 'block';
+                loadSavedClients();
+            }
+        }
+        
+        // Load saved clients from localStorage
+        function loadSavedClients() {
+            const savedClients = getSavedClients();
+            const container = document.getElementById('savedClientsList');
+            
+            if (!container) return;
+            
+            if (savedClients.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-grey">
+                        <p><i class="fas fa-users fa-2x"></i></p>
+                        <p>No saved clients found</p>
+                        <p>Add a new client to get started</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = '';
+            savedClients.forEach(client => {
+                const clientDiv = document.createElement('div');
+                clientDiv.className = 'saved-client-item';
+                clientDiv.onclick = () => selectExistingClient(client.id);
+                
+                clientDiv.innerHTML = `
+                    <div class="saved-client-name">${client.name}</div>
+                    <div class="saved-client-details">
+                        ${client.phone ? `<div><i class="fas fa-phone"></i> ${client.phone}</div>` : ''}
+                        ${client.email ? `<div><i class="fas fa-envelope"></i> ${client.email}</div>` : ''}
+                        ${client.address ? `<div><i class="fas fa-map-marker-alt"></i> ${client.address.substring(0, 50)}${client.address.length > 50 ? '...' : ''}</div>` : ''}
+                    </div>
+                `;
+                
+                container.appendChild(clientDiv);
+            });
+        }
+        
+        // Get saved clients from all invoices
+        function getSavedClients() {
+            const invoices = GubevuData.loadAllInvoices();
+            const clients = [];
+            const clientIds = new Set();
+            
+            invoices.forEach(invoice => {
+                if (invoice.client && invoice.client.name && !clientIds.has(invoice.client.name)) {
+                    clientIds.add(invoice.client.name);
+                    clients.push({
+                        id: invoice.id,
+                        name: invoice.client.name,
+                        phone: invoice.client.phone || '',
+                        email: invoice.client.email || '',
+                        address: invoice.client.address || '',
+                        type: invoice.client.type || 'residential'
+                    });
+                }
+            });
+            
+            return clients.sort((a, b) => a.name.localeCompare(b.name));
+        }
+        
+        // Select existing client
+        function selectExistingClient(invoiceId) {
+            const invoice = GubevuData.loadInvoice(invoiceId);
+            if (!invoice || !invoice.client) return;
+            
+            selectedClientId = invoiceId;
+            
+            // Fill form with client data
+            document.getElementById('clientName').value = invoice.client.name || '';
+            document.getElementById('clientEmail').value = invoice.client.email || '';
+            document.getElementById('clientPhone').value = invoice.client.phone || '';
+            document.getElementById('clientAddress').value = invoice.client.address || '';
+            document.getElementById('clientType').value = invoice.client.type || 'residential';
+            document.getElementById('clientVAT').value = invoice.client.vat || '';
+            
+            // Switch to new client form to show the data
+            setClientType('new');
+            
+            // Show success message
+            showSuccess(`Loaded client: ${invoice.client.name}`);
+        }
+        
+        // Load saved form data from session
+        function loadSavedFormData() {
+            const sessionData = GubevuData.getSessionData();
+            
+            if (sessionData.clientName) {
+                document.getElementById('clientName').value = sessionData.clientName || '';
+                document.getElementById('clientEmail').value = sessionData.clientEmail || '';
+                document.getElementById('clientPhone').value = sessionData.clientPhone || '';
+                document.getElementById('clientAddress').value = sessionData.clientAddress || '';
+                document.getElementById('clientType').value = sessionData.clientType || 'residential';
+                document.getElementById('clientVAT').value = sessionData.clientVAT || '';
+            }
+        }
+        
+        // Save client data and continue to next step
+        function saveClientAndContinue() {
+            // Validate form
+            if (!validateClientForm()) {
+                return;
+            }
+            
+            // Get form data
+            const clientData = {
+                clientName: document.getElementById('clientName').value.trim(),
+                clientEmail: document.getElementById('clientEmail').value.trim(),
+                clientPhone: document.getElementById('clientPhone').value.trim(),
+                clientAddress: document.getElementById('clientAddress').value.trim(),
+                clientType: document.getElementById('clientType').value,
+                clientVAT: document.getElementById('clientVAT').value.trim(),
+                invoiceType: documentType
+            };
+            
+            // Save to session
+            const existingData = GubevuData.getSessionData();
+            const mergedData = { ...existingData, ...clientData };
+            GubevuData.saveSessionData(mergedData);
+            
+            // Show success message
+            showSuccess('Client information saved');
+            
+            // Redirect to items page
+            setTimeout(() => {
+                window.location.href = `04-items.html?type=${documentType}`;
+            }, 500);
+        }
+        
+        // Validate client form
+        function validateClientForm() {
+            const clientName = document.getElementById('clientName').value.trim();
+            const clientPhone = document.getElementById('clientPhone').value.trim();
+            
+            if (!clientName) {
+                showError('Please enter client name');
+                document.getElementById('clientName').focus();
+                return false;
+            }
+            
+            if (!clientPhone) {
+                showError('Please enter client phone number');
+                document.getElementById('clientPhone').focus();
+                return false;
+            }
+            
+            // Validate email if provided
+            const clientEmail = document.getElementById('clientEmail').value.trim();
+            if (clientEmail && !MobileApp.validateEmail(clientEmail)) {
+                showError('Please enter a valid email address');
+                document.getElementById('clientEmail').focus();
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Show error message
+        function showError(message) {
+            alert(message); // Simple alert for now
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            // Could be enhanced with toast notification
+            console.log('Success:', message);
+        }
+        
+        // Go back to dashboard
+        function goBack() {
+            if (confirm('Are you sure? Unsaved changes will be lost.')) {
+                window.location.href = '02-dashboard.html';
+            }
+        }
+        
+        // Add keyboard shortcut for continue (Ctrl/Cmd + Enter)
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                saveClientAndContinue();
+            }
+        });
+    </script>
+</body>
+</html>
