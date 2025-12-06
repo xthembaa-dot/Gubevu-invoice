@@ -954,6 +954,167 @@ South Africa</textarea>
                     console.log('ServiceWorker registration failed:', error);
                 });
         });
+
+
+        // =============================================
+// LOAD FROM MOBILE FUNCTIONALITY
+// =============================================
+
+function loadFromMobile() {
+    // Get mobile documents from localStorage
+    const mobileDocs = JSON.parse(localStorage.getItem('mobile_documents') || '[]');
+    
+    if (mobileDocs.length === 0) {
+        alert('No mobile documents found.\n\nCreate documents using the mobile app first.');
+        return;
+    }
+    
+    // Create selection dialog
+    let optionsHtml = '<h3>Select Mobile Document to Load:</h3>';
+    optionsHtml += '<div style="max-height: 300px; overflow-y: auto; margin: 10px 0; padding: 10px; border: 1px solid #ccc;">';
+    
+    mobileDocs.forEach((doc, index) => {
+        const docDate = new Date(doc.date).toLocaleDateString();
+        const clientName = doc.client.name || 'Unknown Client';
+        const total = doc.totals.total ? 'R ' + doc.totals.total.toFixed(2) : 'R 0.00';
+        
+        optionsHtml += `
+            <div style="padding: 10px; border-bottom: 1px solid #eee; cursor: pointer;"
+                 onclick="selectMobileDocument(${index})"
+                 onmouseover="this.style.background='#f5f5f5'"
+                 onmouseout="this.style.background='white'">
+                <strong>${doc.id}</strong> (${doc.type})<br>
+                <small>Client: ${clientName}</small><br>
+                <small>Date: ${docDate} | Total: ${total} | Status: ${doc.status}</small>
+            </div>
+        `;
+    });
+    
+    optionsHtml += '</div>';
+    optionsHtml += '<button onclick="closeMobileDialog()" style="padding: 8px 16px; background: #ccc; border: none; margin-top: 10px;">Cancel</button>';
+    
+    // Show dialog
+    const dialog = document.createElement('div');
+    dialog.id = 'mobileDocDialog';
+    dialog.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        z-index: 10000;
+        max-width: 500px;
+        width: 90%;
+    `;
+    dialog.innerHTML = optionsHtml;
+    
+    document.body.appendChild(dialog);
+    
+    // Add overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'mobileDocOverlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 9999;
+    `;
+    document.body.appendChild(overlay);
+}
+
+function selectMobileDocument(index) {
+    const mobileDocs = JSON.parse(localStorage.getItem('mobile_documents') || '[]');
+    const doc = mobileDocs[index];
+    
+    if (!doc) {
+        alert('Document not found');
+        closeMobileDialog();
+        return;
+    }
+    
+    // Set document type
+    const docTypeSelect = document.getElementById('document-type');
+    docTypeSelect.value = doc.type;
+    updateDocumentType(doc.type);
+    
+    // Set document number
+    const docNumber = document.getElementById('document-number');
+    docNumber.textContent = doc.id;
+    
+    // Set current date
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString('en-GB');
+    document.getElementById('document-date').textContent = formattedDate;
+    
+    // Set client info
+    document.getElementById('client-name-input').value = doc.client.name || '';
+    document.getElementById('client-address-textarea').value = doc.client.address || '';
+    
+    // Clear existing items
+    const tableBody = document.querySelector('#item-table tbody');
+    tableBody.innerHTML = '';
+    
+    // Add items from mobile
+    doc.items.forEach(item => {
+        const newRow = document.createElement('tr');
+        newRow.classList.add('item-row');
+        newRow.innerHTML = `
+            <td contenteditable="true">${item.activity || 'Item'}</td>
+            <td class="description-cell" contenteditable="true">
+                ${item.description || 'Description...'}
+                <button class="delete-btn" onclick="deleteRow(this)" title="Delete this item">×</button>
+            </td>
+            <td class="qty-cell" contenteditable="true">${item.quantity || 1}</td>
+            <td class="rate-cell" contenteditable="true">R ${item.price ? item.price.toFixed(2) : '0.00'}</td>
+            <td class="total-amount">R <span class="line-total">${item.lineTotal ? item.lineTotal.toFixed(2) : '0.00'}</span></td>
+        `;
+        tableBody.appendChild(newRow);
+    });
+    
+    // Calculate totals
+    attachListeners();
+    calculateTotals();
+    
+    // Close dialog
+    closeMobileDialog();
+    
+    // Show success message
+    alert(`Document "${doc.id}" loaded successfully!`);
+}
+
+function closeMobileDialog() {
+    const dialog = document.getElementById('mobileDocDialog');
+    const overlay = document.getElementById('mobileDocOverlay');
+    
+    if (dialog) dialog.remove();
+    if (overlay) overlay.remove();
+}
+
+// Add "Load from Mobile" button to your desktop action buttons
+// Add this HTML to your action-buttons div:
+// <button onclick="loadFromMobile()">Load from Mobile</button>
+
+// Add this CSS for the button:
+// #load-mobile-btn {
+//     background-color: #4CAF50;
+//     color: white;
+//     border: none;
+//     padding: 10px 18px;
+//     cursor: pointer;
+//     font-size: 13px;
+//     margin: 4px;
+//     border-radius: 4px;
+//     transition: background-color 0.2s;
+// }
+// #load-mobile-btn:hover {
+//     background-color: #45a049;
+// }
     }
 </script>
 </body>
