@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview - Gubevu Electrical</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="preview-screen">
+        <div class="preview-header">
+            <button class="back-btn" onclick="goBack()">← Edit</button>
+            <h2>Invoice Preview</h2>
+            <div style="width: 60px;"></div>
+        </div>
+        
+        <div class="preview-content">
+            <div class="desktop-preview-container" id="invoice-preview">
+                <!-- Desktop invoice will be loaded here -->
+                <div class="loading">Loading preview...</div>
+            </div>
+        </div>
+        
+        <div class="preview-actions">
+            <button class="btn-secondary" onclick="markAsSent()">✅ Mark as Sent</button>
+            <button class="btn-primary" onclick="downloadPDF()">📥 Download PDF</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Check login
+        if (!localStorage.getItem('currentUser')) {
+            window.location.href = 'index.html';
+        }
+        
+        function goBack() {
+            window.location.href = 'add-items.html';
+        }
+        
+        function markAsSent() {
+            const client = JSON.parse(localStorage.getItem('currentClient') || '{}');
+            const items = JSON.parse(localStorage.getItem('currentItems') || '[]');
+            
+            if (items.length === 0) {
+                alert('No items to save');
+                return;
+            }
+            
+            const invoice = {
+                id: Date.now(),
+                type: 'invoice',
+                number: 'INV-' + Date.now().toString().slice(-6),
+                client: client,
+                items: items,
+                date: new Date().toLocaleDateString('en-GB'),
+                status: 'sent',
+                createdBy: localStorage.getItem('currentUser')
+            };
+            
+            // Save to sent invoices
+            let sent = JSON.parse(localStorage.getItem('sentInvoices') || '[]');
+            sent.push(invoice);
+            localStorage.setItem('sentInvoices', JSON.stringify(sent));
+            
+            alert('Invoice marked as sent!');
+            window.location.href = 'saved-invoices.html';
+        }
+        
+        function downloadPDF() {
+            window.print();
+        }
+        
+        // Load and render desktop invoice preview
+        function renderInvoicePreview() {
+            const client = JSON.parse(localStorage.getItem('currentClient') || '{}');
+            const items = JSON.parse(localStorage.getItem('currentItems') || '[]');
+            
+            if (items.length === 0) {
+                document.getElementById('invoice-preview').innerHTML = 
+                    '<div class="no-preview">Add items first to preview</div>';
+                return;
+            }
+            
+            // Calculate totals
+            let subtotal = 0;
+            items.forEach(item => {
+                subtotal += item.total;
+            });
+            const vat = subtotal * 0.15;
+            const total = subtotal + vat;
+            
+            // Generate HTML similar to desktop invoice
+            const html = `
+            <div class="invoice-preview-content">
+                <div class="preview-header">
+                    <h3>INVOICE</h3>
+                    <div class="preview-details">
+                        <div>INV-${Date.now().toString().slice(-6)}</div>
+                        <div>${new Date().toLocaleDateString('en-GB')}</div>
+                    </div>
+                </div>
+                
+                <div class="preview-client">
+                    <strong>BILL TO:</strong>
+                    <div>${client.company || 'Client Company'}</div>
+                    <div>${client.contact || ''}</div>
+                    <div>${client.address || ''}</div>
+                </div>
+                
+                <table class="preview-table">
+                    <thead>
+                        <tr>
+                            <th>ACTIVITY</th>
+                            <th>DESCRIPTION</th>
+                            <th>QTY</th>
+                            <th>AMOUNT</th>
+                            <th>TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${items.map(item => `
+                        <tr>
+                            <td>${item.activity}</td>
+                            <td>${item.description}</td>
+                            <td>${item.quantity}</td>
+                            <td>R ${item.amount.toFixed(2)}</td>
+                            <td>R ${item.total.toFixed(2)}</td>
+                        </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                
+                <div class="preview-totals">
+                    <div class="total-row">
+                        <span>SUBTOTAL:</span>
+                        <span>R ${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div class="total-row">
+                        <span>VAT (15%):</span>
+                        <span>R ${vat.toFixed(2)}</span>
+                    </div>
+                    <div class="total-row grand-total">
+                        <span>TOTAL:</span>
+                        <span>R ${total.toFixed(2)}</span>
+                    </div>
+                </div>
+            </div>
+            `;
+            
+            document.getElementById('invoice-preview').innerHTML = html;
+        }
+        
+        // Render on load
+        renderInvoicePreview();
+    </script>
+</body>
+</html>
