@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Gubevu Electrical</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard-screen">
+        <div class="dashboard-header">
+            <h1>Good day, <span id="userName">User</span>!</h1>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+        
+        <div class="dashboard-content">
+            <h2>What would you like to do?</h2>
+            
+            <div class="menu-grid">
+                <button class="menu-btn" onclick="goTo('create-invoice.html')">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Create Invoice</span>
+                </button>
+                
+                <button class="menu-btn" onclick="goTo('create-quote.html')">
+                    <span class="menu-icon">📝</span>
+                    <span class="menu-text">Create Quote</span>
+                </button>
+                
+                <button class="menu-btn" onclick="goTo('saved-invoices.html')">
+                    <span class="menu-icon">📁</span>
+                    <span class="menu-text">View Saved Invoices</span>
+                </button>
+                
+                <button class="menu-btn" onclick="goTo('saved-quotes.html')">
+                    <span class="menu-icon">📁</span>
+                    <span class="menu-text">View Saved Quotes</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Set user name
+        const currentUser = localStorage.getItem('currentUser');
+        if (!currentUser) {
+            window.location.href = 'index.html';
+        } else {
+            document.getElementById('userName').textContent = currentUser;
+        }
+        
+        function goTo(page) {
+            window.location.href = page;
+        }
+        
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
