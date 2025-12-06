@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Details - Gubevu Electrical</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="form-screen">
+        <div class="form-header">
+            <button class="back-btn" onclick="goBack()">← Back</button>
+            <h2>Enter Client Details</h2>
+            <div style="width: 60px;"></div> <!-- Spacer -->
+        </div>
+        
+        <div class="form-content">
+            <div class="contact-form">
+                <div class="form-group">
+                    <label for="company-name">Company Name</label>
+                    <input type="text" id="company-name" placeholder="Enter company name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="contact-person">Contact Person</label>
+                    <input type="text" id="contact-person" placeholder="Enter contact person">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="Enter email address">
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone</label>
+                    <input type="tel" id="phone" placeholder="Enter phone number">
+                </div>
+                
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <textarea id="address" placeholder="Enter full address" rows="4"></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button class="btn-secondary" onclick="saveClient()">Save Contact</button>
+                    <button class="btn-primary" onclick="nextStep()">Next → Add Items</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Check login
+        if (!localStorage.getItem('currentUser')) {
+            window.location.href = 'index.html';
+        }
+        
+        function goBack() {
+            window.location.href = 'dashboard.html';
+        }
+        
+        function saveClient() {
+            const client = {
+                company: document.getElementById('company-name').value,
+                contact: document.getElementById('contact-person').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value
+            };
+            
+            // Save to localStorage
+            localStorage.setItem('currentClient', JSON.stringify(client));
+            alert('Client saved!');
+        }
+        
+        function nextStep() {
+            const company = document.getElementById('company-name').value;
+            if (!company) {
+                alert('Please enter company name');
+                return;
+            }
+            
+            // Save client and go to next step
+            saveClient();
+            window.location.href = 'add-items.html?type=invoice';
+        }
+    </script>
+</body>
+</html>
