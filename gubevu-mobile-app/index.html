@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gubevu Electrical - Login</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#c96062">
+    <meta name="mobile-web-app-capable" content="yes">
+</head>
+<body>
+    <div class="login-screen">
+        <div class="logo-container">
+            <div class="logo">GE</div>
+            <h1>Gubevu Electrical</h1>
+        </div>
+        
+        <div class="login-form">
+            <h2>Login</h2>
+            <p>Select your name to continue</p>
+            
+            <div class="user-list">
+                <div class="user-item" onclick="login('Fikiswa')">
+                    👩‍💼 Fikiswa
+                </div>
+                <div class="user-item" onclick="login('Thando')">
+                    👨‍💼 Thando
+                </div>
+                <div class="user-item" onclick="login('Sipho')">
+                    👨‍🔧 Sipho
+                </div>
+                <div class="user-item" onclick="login('Nomsa')">
+                    👩‍🔧 Nomsa
+                </div>
+                <div class="user-item" onclick="login('James')">
+                    👨‍💼 James
+                </div>
+            </div>
+        </div>
+        
+        <div class="app-info">
+            <p>Mobile Invoice & Quote System</p>
+            <p class="version">v1.0</p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        function login(username) {
+            localStorage.setItem('currentUser', username);
+            window.location.href = 'dashboard.html';
+        }
+        
+        // Auto-redirect if already logged in
+        if (localStorage.getItem('currentUser')) {
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+</html>
