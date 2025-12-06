@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Saved Quotes - Gubevu Electrical</title>
+    <link rel="stylesheet" href="mobile-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Quote-specific styles */
+        .quote-badge {
+            display: inline-block;
+            background: rgba(229, 57, 53, 0.2);
+            color: var(--color-red);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-right: var(--spacing-sm);
+        }
+        
+        .converted-badge {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+        }
+        
+        .convert-btn {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+            border: 1px solid #4CAF50;
+        }
+        
+        .convert-btn:hover {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .quote-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .quote-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(229, 57, 53, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-red);
+            font-size: 1.25rem;
+        }
+        
+        .quote-info {
+            background: rgba(229, 57, 53, 0.1);
+            border: 2px solid var(--color-red);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .quote-info h3 {
+            color: var(--color-red);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .quote-info p {
+            color: var(--color-text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0;
+        }
+        
+        .expiry-notice {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid #FFC107;
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-md);
+            margin-top: var(--spacing-md);
+        }
+        
+        .expiry-notice p {
+            color: #FFC107;
+            font-size: 0.875rem;
+            margin-bottom: 0;
+            text-align: center;
+        }
+        
+        .expired {
+            background: rgba(244, 67, 54, 0.1);
+            border-color: #F44336;
+        }
+        
+        .expired p {
+            color: #F44336;
+        }
+    </style>
+</head>
+<body class="bg-dashboard">
+    <div class="app-container">
+        <!-- Header -->
+        <div class="saved-header">
+            <a href="02-dashboard.html" class="back-button">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
+            <h2>Saved Quotes</h2>
+        </div>
+        
+        <!-- Quote Information -->
+        <div class="quote-info">
+            <h3><i class="fas fa-file-alt"></i> Quotations</h3>
+            <p>Quotations can be converted to invoices when the client accepts. Quotes expire after 30 days.</p>
+        </div>
+        
+        <!-- Search Box -->
+        <div class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search quotes...">
+            <button id="clearSearch" class="clear-search">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <!-- Status Filters -->
+        <div class="status-filters">
+            <button class="status-filter all active" data-status="all">All</button>
+            <button class="status-filter draft" data-status="draft">Drafts</button>
+            <button class="status-filter sent" data-status="sent">Sent</button>
+            <button class="status-filter accepted" data-status="accepted">Accepted</button>
+            <button class="status-filter converted" data-status="converted">Converted</button>
+            <button class="status-filter expired" data-status="expired">Expired</button>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="invoice-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="totalCount">0</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="activeCount">0</div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="convertedCount">0</div>
+                <div class="stat-label">Converted</div>
+            </div>
+        </div>
+        
+        <!-- Quotes List -->
+        <div class="invoices-container" id="quotesList">
+            <!-- Quotes will be loaded here -->
+        </div>
+        
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <i class="fas fa-file-alt"></i>
+            <h3>No Quotes Found</h3>
+            <p>Create your first quotation to get started</p>
+            <a href="07-create-quote.html" class="btn btn-primary mt-2">
+                <i class="fas fa-plus"></i> Create New Quote
+            </a>
+        </div>
+        
+        <!-- Footer -->
+        <div class="app-footer">
+            <p>Created by <strong>Iciko Systems</strong></p>
+        </div>
+    </div>
+    
+    <script src="shared-data.js"></script>
+    <script src="mobile-app.js"></script>
+    <script>
+        let currentStatus = 'all';
+        let quotes = [];
+        let filteredQuotes = [];
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            const currentUser = GubevuData.getCurrentUser();
+            if (!currentUser) {
+                window.location.href = '01-login.html';
+                return;
+            }
+            
+            // Get status from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const status = urlParams.get('status');
+            if (status) {
+                currentStatus = status;
+                updateStatusFilter(status);
+            }
+            
+            // Load quotes
+            loadQuotes();
+            
+            // Setup event listeners
+            setupEventListeners();
+        });
+        
+        // Load quotes
+        function loadQuotes() {
+            // Get all quotes
+            const allInvoices = GubevuData.loadAllInvoices();
+            quotes = allInvoices.filter(inv => inv.type === 'quote');
+            
+            // Check for expired quotes
+            checkExpiredQuotes();
+            
+            // Apply filters
+            applyFilters();
+            
+            // Update statistics
+            updateStatistics();
+            
+            // Render quotes
+            renderQuotes();
+        }
+        
+        // Check for expired quotes (30 days)
+        function checkExpiredQuotes() {
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            
+            quotes.forEach(quote => {
+                const quoteDate = new Date(quote.date);
+                if (quoteDate < thirtyDaysAgo && quote.status !== 'converted' && quote.status !== 'expired') {
+                    // Mark as expired
+                    GubevuData.updateInvoiceStatus(quote.id, 'expired');
+                }
+            });
+        }
+        
+        // Apply filters
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            filteredQuotes = quotes.filter(quote => {
+                // Filter by status
+                if (currentStatus !== 'all') {
+                    if (currentStatus === 'active') {
+                        // Active = draft or sent
+                        if (quote.status !== 'draft' && quote.status !== 'sent') {
+                            return false;
+                        }
+                    } else if (quote.status !== currentStatus) {
+                        return false;
+                    }
+                }
+                
+                // Filter by search term
+                if (searchTerm) {
+                    const searchFields = [
+                        quote.id,
+                        quote.client?.name,
+                        quote.client?.email,
+                        quote.client?.phone,
+                        ...(quote.items?.map(item => item.description) || [])
+                    ];
+                    
+                    const matches = searchFields.some(field => 
+                        field && field.toString().toLowerCase().includes(searchTerm)
+                    );
+                    
+                    if (!matches) return false;
+                }
+                
+                return true;
+            });
+            
+            // Sort by date (newest first)
+            filteredQuotes.sort((a, b) => new Date(b.created) - new Date(a.created));
+        }
+        
+        // Render quotes
+        function renderQuotes() {
+            const container = document.getElementById('quotesList');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (filteredQuotes.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            let html = '';
+            filteredQuotes.forEach(quote => {
+                const statusClass = `status-${quote.status}`;
+                const statusText = quote.status.charAt(0).toUpperCase() + quote.status.slice(1);
+                const date = formatDate(quote.date);
+                const total = quote.totals ? quote.totals.total : 0;
+                const clientName = quote.client?.name || 'Unknown Client';
+                
+                // Check if expired
+                const quoteDate = new Date(quote.date);
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                const isExpired = quoteDate < thirtyDaysAgo && quote.status !== 'converted';
+                
+                // Get status color
+                let statusColor = '';
+                switch(quote.status) {
+                    case 'draft': statusColor = 'var(--color-grey)'; break;
+                    case 'sent': statusColor = '#2196F3'; break;
+                    case 'accepted': statusColor = '#4CAF50'; break;
+                    case 'converted': statusColor = '#4CAF50'; break;
+                    case 'expired': statusColor = '#F44336'; break;
+                    default: statusColor = 'var(--color-grey)';
+                }
+                
+                html += `
+                    <div class="invoice-card" data-id="${quote.id}">
+                        <div class="invoice-header">
+                            <div class="quote-header">
+                                <div class="quote-icon">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <div class="invoice-info">
+                                    <h3>${quote.id}</h3>
+                                    <p>${date} • ${clientName}</p>
+                                </div>
+                            </div>
+                            <span class="invoice-status" style="background: ${statusColor}20; color: ${statusColor}; border: 1px solid ${statusColor}">
+                                ${statusText}
+                            </span>
+                        </div>
+                        
+                        <div class="invoice-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Client</span>
+                                <span class="detail-value">${clientName}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Amount</span>
+                                <span class="detail-value">R ${total.toFixed(2)}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Items</span>
+                                <span class="detail-value">${quote.items?.length || 0} items</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Created</span>
+                                <span class="detail-value">${formatDate(quote.created)}</span>
+                            </div>
+                        </div>
+                        
+                        ${isExpired ? `
+                            <div class="expiry-notice expired">
+                                <p><i class="fas fa-exclamation-triangle"></i> This quote has expired</p>
+                            </div>
+                        ` : `
+                            <div class="expiry-notice">
+                                <p><i class="fas fa-clock"></i> Valid for 30 days from ${date}</p>
+                            </div>
+                        `}
+                        
+                        <div class="invoice-actions">
+                            <button class="btn btn-outline btn-small" onclick="viewQuote('${quote.id}')">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            <button class="btn btn-outline btn-small" onclick="updateQuoteStatus('${quote.id}', 'sent')" ${quote.status === 'sent' || quote.status === 'converted' ? 'disabled style="opacity: 0.5"' : ''}>
+                                <i class="fas fa-paper-plane"></i> Mark Sent
+                            </button>
+                            <button class="btn convert-btn btn-small" onclick="convertToInvoice('${quote.id}')" ${quote.status === 'converted' ? 'disabled style="opacity: 0.5"' : ''}>
+                                <i class="fas fa-exchange-alt"></i> Convert to Invoice
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // Update statistics
+        function updateStatistics() {
+            const totalCount = quotes.length;
+            const activeCount = quotes.filter(q => 
+                q.status === 'draft' || q.status === 'sent' || q.status === 'accepted'
+            ).length;
+            const convertedCount = quotes.filter(q => q.status === 'converted').length;
+            
+            document.getElementById('totalCount').textContent = totalCount;
+            document.getElementById('activeCount').textContent = activeCount;
+            document.getElementById('convertedCount').textContent = convertedCount;
+        }
+        
+        // Format date
+        function formatDate(dateString) {
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-ZA', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+            } catch (e) {
+                return 'Invalid Date';
+            }
+        }
+        
+        // Update status filter
+        function updateStatusFilter(status) {
+            currentStatus = status;
+            
+            // Update button states
+            document.querySelectorAll('.status-filter').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.status === status) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Apply filters and re-render
+            applyFilters();
+            renderQuotes();
+        }
+        
+        // View quote
+        function viewQuote(quoteId) {
+            // Open in new tab or redirect
+            window.open(`shared-invoice.html?id=${quoteId}`, '_blank');
+        }
+        
+        // Update quote status
+        function updateQuoteStatus(quoteId, newStatus) {
+            if (!confirm(`Are you sure you want to mark this quote as ${newStatus}?`)) {
+                return;
+            }
+            
+            const result = GubevuData.updateInvoiceStatus(quoteId, newStatus);
+            
+            if (result.success) {
+                alert(`Quote marked as ${newStatus}`);
+                loadQuotes(); // Reload quotes
+            } else {
+                alert(`Failed to update status: ${result.error}`);
+            }
+        }
+        
+        // Convert quote to invoice
+        function convertToInvoice(quoteId) {
+            if (!confirm('Convert this quote to an invoice? This cannot be undone.')) {
+                return;
+            }
+            
+            const result = GubevuData.convertQuoteToInvoice(quoteId);
+            
+            if (result.success) {
+                alert('Quote converted to invoice successfully!');
+                loadQuotes(); // Reload quotes
+                
+                // Optionally redirect to the new invoice
+                // window.location.href = `shared-invoice.html?id=${result.invoiceId}`;
+            } else {
+                alert(`Failed to convert: ${result.error}`);
+            }
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Status filter buttons
+            document.querySelectorAll('.status-filter').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    updateStatusFilter(btn.dataset.status);
+                });
+            });
+            
+            // Search input
+            const searchInput = document.getElementById('searchInput');
+            const clearSearch = document.getElementById('clearSearch');
+            
+            searchInput.addEventListener('input', () => {
+                clearSearch.style.display = searchInput.value ? 'block' : 'none';
+                applyFilters();
+                renderQuotes();
+            });
+            
+            // Clear search
+            clearSearch.addEventListener('click', () => {
+                searchInput.value = '';
+                clearSearch.style.display = 'none';
+                applyFilters();
+                renderQuotes();
+            });
+        }
+    </script>
+</body>
+</html>
