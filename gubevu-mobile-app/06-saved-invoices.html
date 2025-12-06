@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Saved Invoices - Gubevu Electrical</title>
+    <link rel="stylesheet" href="mobile-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Additional styles for saved invoices */
+        .saved-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .status-filters {
+            display: flex;
+            overflow-x: auto;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-xl);
+            padding-bottom: var(--spacing-sm);
+            scrollbar-width: none;
+        }
+        
+        .status-filters::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .status-filter {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: transparent;
+            border: 2px solid var(--color-dark-grey);
+            border-radius: 20px;
+            color: var(--color-text-secondary);
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+        
+        .status-filter.active {
+            background: var(--color-red);
+            border-color: var(--color-red);
+            color: var(--color-white);
+        }
+        
+        .status-filter.all { border-color: var(--color-medium-grey); }
+        .status-filter.draft { border-color: var(--color-grey); }
+        .status-filter.sent { border-color: #2196F3; }
+        .status-filter.paid { border-color: #4CAF50; }
+        .status-filter.outstanding { border-color: var(--color-red); }
+        
+        .invoice-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--color-dark-grey);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-md);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-red);
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .stat-label {
+            color: var(--color-text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .invoices-container {
+            width: 100%;
+        }
+        
+        .invoice-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--color-dark-grey);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-md);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .invoice-card:hover {
+            border-color: var(--color-red);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-2);
+        }
+        
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .invoice-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .invoice-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(229, 57, 53, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-red);
+            font-size: 1.25rem;
+        }
+        
+        .invoice-info h3 {
+            margin-bottom: 2px;
+            color: var(--color-white);
+        }
+        
+        .invoice-info p {
+            color: var(--color-text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0;
+        }
+        
+        .invoice-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .invoice-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            padding: var(--spacing-md);
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius-md);
+        }
+        
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .detail-label {
+            color: var(--color-text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        
+        .detail-value {
+            color: var(--color-white);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .invoice-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+        }
+        
+        .invoice-actions button {
+            flex: 1;
+            padding: var(--spacing-sm);
+            font-size: 0.875rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-xl);
+            color: var(--color-text-secondary);
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: var(--spacing-md);
+            color: var(--color-dark-grey);
+        }
+        
+        .empty-state h3 {
+            color: var(--color-white);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .search-box {
+            position: relative;
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: var(--spacing-md) var(--spacing-xl) var(--spacing-md) var(--spacing-xl);
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--color-dark-grey);
+            border-radius: var(--border-radius-lg);
+            color: var(--color-text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            border-color: var(--color-red);
+            box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.2);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: var(--spacing-md);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-text-secondary);
+        }
+        
+        .clear-search {
+            position: absolute;
+            right: var(--spacing-md);
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            display: none;
+        }
+        
+        .filter-bar {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .filter-select {
+            flex: 1;
+            padding: var(--spacing-md);
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--color-dark-grey);
+            border-radius: var(--border-radius-md);
+            color: var(--color-text-primary);
+            font-size: 0.9rem;
+        }
+        
+        .total-amount {
+            background: rgba(229, 57, 53, 0.1);
+            border: 2px solid var(--color-red);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-lg);
+            text-align: center;
+            margin-top: var(--spacing-xl);
+        }
+        
+        .total-label {
+            color: var(--color-text-secondary);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .total-value {
+            color: var(--color-red);
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        @media (max-width: 480px) {
+            .invoice-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .invoice-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .invoice-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body class="bg-dashboard">
+    <div class="app-container">
+        <!-- Header -->
+        <div class="saved-header">
+            <a href="02-dashboard.html" class="back-button">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
+            <h2>Saved Invoices</h2>
+        </div>
+        
+        <!-- Search Box -->
+        <div class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search invoices...">
+            <button id="clearSearch" class="clear-search">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <!-- Status Filters -->
+        <div class="status-filters">
+            <button class="status-filter all active" data-status="all">All</button>
+            <button class="status-filter draft" data-status="draft">Drafts</button>
+            <button class="status-filter sent" data-status="sent">Sent</button>
+            <button class="status-filter paid" data-status="paid">Paid</button>
+            <button class="status-filter outstanding" data-status="outstanding">Outstanding</button>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="invoice-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="totalCount">0</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="outstandingCount">0</div>
+                <div class="stat-label">Outstanding</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalAmount">R0</div>
+                <div class="stat-label">Total Amount</div>
+            </div>
+        </div>
+        
+        <!-- Invoices List -->
+        <div class="invoices-container" id="invoicesList">
+            <!-- Invoices will be loaded here -->
+        </div>
+        
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <i class="fas fa-file-invoice"></i>
+            <h3>No Invoices Found</h3>
+            <p>Create your first invoice to get started</p>
+            <a href="03-client.html?type=invoice" class="btn btn-primary mt-2">
+                <i class="fas fa-plus"></i> Create New Invoice
+            </a>
+        </div>
+        
+        <!-- Total Outstanding -->
+        <div class="total-amount" id="totalOutstanding" style="display: none;">
+            <div class="total-label">Total Outstanding</div>
+            <div class="total-value" id="outstandingTotal">R 0.00</div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="app-footer">
+            <p>Created by <strong>Iciko Systems</strong></p>
+        </div>
+    </div>
+    
+    <script src="shared-data.js"></script>
+    <script src="mobile-app.js"></script>
+    <script>
+        let currentStatus = 'all';
+        let invoices = [];
+        let filteredInvoices = [];
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            const currentUser = GubevuData.getCurrentUser();
+            if (!currentUser) {
+                window.location.href = '01-login.html';
+                return;
+            }
+            
+            // Get status from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const status = urlParams.get('status');
+            if (status) {
+                currentStatus = status;
+                updateStatusFilter(status);
+            }
+            
+            // Load invoices
+            loadInvoices();
+            
+            // Setup event listeners
+            setupEventListeners();
+        });
+        
+        // Load invoices
+        function loadInvoices() {
+            // Get all invoices (excluding quotes)
+            const allInvoices = GubevuData.loadAllInvoices();
+            invoices = allInvoices.filter(inv => inv.type !== 'quote');
+            
+            // Apply filters
+            applyFilters();
+            
+            // Update statistics
+            updateStatistics();
+            
+            // Render invoices
+            renderInvoices();
+        }
+        
+        // Apply filters
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            filteredInvoices = invoices.filter(invoice => {
+                // Filter by status
+                if (currentStatus !== 'all' && invoice.status !== currentStatus) {
+                    return false;
+                }
+                
+                // Filter by search term
+                if (searchTerm) {
+                    const searchFields = [
+                        invoice.id,
+                        invoice.client?.name,
+                        invoice.client?.email,
+                        invoice.client?.phone,
+                        ...(invoice.items?.map(item => item.description) || [])
+                    ];
+                    
+                    const matches = searchFields.some(field => 
+                        field && field.toString().toLowerCase().includes(searchTerm)
+                    );
+                    
+                    if (!matches) return false;
+                }
+                
+                return true;
+            });
+            
+            // Sort by date (newest first)
+            filteredInvoices.sort((a, b) => new Date(b.created) - new Date(a.created));
+        }
+        
+        // Render invoices
+        function renderInvoices() {
+            const container = document.getElementById('invoicesList');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (filteredInvoices.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            let html = '';
+            filteredInvoices.forEach(invoice => {
+                const statusClass = `status-${invoice.status}`;
+                const statusText = invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1);
+                const date = formatDate(invoice.date);
+                const total = invoice.totals ? invoice.totals.total : 0;
+                const clientName = invoice.client?.name || 'Unknown Client';
+                
+                // Get status color
+                let statusColor = '';
+                switch(invoice.status) {
+                    case 'draft': statusColor = 'var(--color-grey)'; break;
+                    case 'sent': statusColor = '#2196F3'; break;
+                    case 'paid': statusColor = '#4CAF50'; break;
+                    case 'outstanding': statusColor = 'var(--color-red)'; break;
+                }
+                
+                html += `
+                    <div class="invoice-card" data-id="${invoice.id}">
+                        <div class="invoice-header">
+                            <div class="invoice-title">
+                                <div class="invoice-icon">
+                                    <i class="fas fa-file-invoice-dollar"></i>
+                                </div>
+                                <div class="invoice-info">
+                                    <h3>${invoice.id}</h3>
+                                    <p>${date} • ${clientName}</p>
+                                </div>
+                            </div>
+                            <span class="invoice-status" style="background: ${statusColor}20; color: ${statusColor}; border: 1px solid ${statusColor}">
+                                ${statusText}
+                            </span>
+                        </div>
+                        
+                        <div class="invoice-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Client</span>
+                                <span class="detail-value">${clientName}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Amount</span>
+                                <span class="detail-value">R ${total.toFixed(2)}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Items</span>
+                                <span class="detail-value">${invoice.items?.length || 0} items</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Created</span>
+                                <span class="detail-value">${formatDate(invoice.created)}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="invoice-actions">
+                            <button class="btn btn-outline btn-small" onclick="viewInvoice('${invoice.id}')">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            <button class="btn btn-outline btn-small" onclick="updateStatus('${invoice.id}', 'sent')" ${invoice.status === 'sent' || invoice.status === 'paid' ? 'disabled style="opacity: 0.5"' : ''}>
+                                <i class="fas fa-paper-plane"></i> Mark Sent
+                            </button>
+                            <button class="btn btn-outline btn-small" onclick="updateStatus('${invoice.id}', 'paid')" ${invoice.status === 'paid' ? 'disabled style="opacity: 0.5"' : ''}>
+                                <i class="fas fa-check-circle"></i> Mark Paid
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            // Show/hide total outstanding
+            const totalOutstanding = document.getElementById('totalOutstanding');
+            const outstandingInvoices = invoices.filter(inv => 
+                inv.status === 'outstanding' || inv.status === 'sent'
+            );
+            
+            if (outstandingInvoices.length > 0 && currentStatus !== 'paid') {
+                totalOutstanding.style.display = 'block';
+            } else {
+                totalOutstanding.style.display = 'none';
+            }
+        }
+        
+        // Update statistics
+        function updateStatistics() {
+            const totalCount = invoices.length;
+            const outstandingCount = invoices.filter(inv => 
+                inv.status === 'outstanding' || inv.status === 'sent'
+            ).length;
+            
+            let totalAmount = 0;
+            let outstandingTotal = 0;
+            
+            invoices.forEach(invoice => {
+                if (invoice.totals && invoice.totals.total) {
+                    totalAmount += invoice.totals.total;
+                    
+                    if (invoice.status === 'outstanding' || invoice.status === 'sent') {
+                        outstandingTotal += invoice.totals.total;
+                    }
+                }
+            });
+            
+            document.getElementById('totalCount').textContent = totalCount;
+            document.getElementById('outstandingCount').textContent = outstandingCount;
+            document.getElementById('totalAmount').textContent = formatCurrency(totalAmount);
+            document.getElementById('outstandingTotal').textContent = formatCurrency(outstandingTotal);
+        }
+        
+        // Format date
+        function formatDate(dateString) {
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-ZA', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+            } catch (e) {
+                return 'Invalid Date';
+            }
+        }
+        
+        // Format currency
+        function formatCurrency(amount) {
+            return 'R ' + amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+        
+        // Update status filter
+        function updateStatusFilter(status) {
+            currentStatus = status;
+            
+            // Update button states
+            document.querySelectorAll('.status-filter').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.status === status) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Apply filters and re-render
+            applyFilters();
+            renderInvoices();
+        }
+        
+        // View invoice
+        function viewInvoice(invoiceId) {
+            // Open in new tab or redirect
+            window.open(`shared-invoice.html?id=${invoiceId}`, '_blank');
+        }
+        
+        // Update invoice status
+        function updateStatus(invoiceId, newStatus) {
+            if (!confirm(`Are you sure you want to mark this invoice as ${newStatus}?`)) {
+                return;
+            }
+            
+            const result = GubevuData.updateInvoiceStatus(invoiceId, newStatus);
+            
+            if (result.success) {
+                alert(`Invoice marked as ${newStatus}`);
+                loadInvoices(); // Reload invoices
+            } else {
+                alert(`Failed to update status: ${result.error}`);
+            }
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Status filter buttons
+            document.querySelectorAll('.status-filter').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    updateStatusFilter(btn.dataset.status);
+                });
+            });
+            
+            // Search input
+            const searchInput = document.getElementById('searchInput');
+            const clearSearch = document.getElementById('clearSearch');
+            
+            searchInput.addEventListener('input', () => {
+                clearSearch.style.display = searchInput.value ? 'block' : 'none';
+                applyFilters();
+                renderInvoices();
+            });
+            
+            // Clear search
+            clearSearch.addEventListener('click', () => {
+                searchInput.value = '';
+                clearSearch.style.display = 'none';
+                applyFilters();
+                renderInvoices();
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Ctrl/Cmd + F: Focus search
+                if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+                // Esc: Clear search
+                else if (e.key === 'Escape' && searchInput.value) {
+                    searchInput.value = '';
+                    clearSearch.style.display = 'none';
+                    applyFilters();
+                    renderInvoices();
+                }
+            });
+            
+            // Pull to refresh
+            let startY = 0;
+            let endY = 0;
+            
+            document.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].clientY;
+            }, { passive: true });
+            
+            document.addEventListener('touchend', (e) => {
+                endY = e.changedTouches[0].clientY;
+                
+                // If pulled down more than 100px from top
+                if (startY - endY > 100 && window.scrollY === 0) {
+                    loadInvoices();
+                    showRefreshFeedback();
+                }
+            }, { passive: true });
+        }
+        
+        // Show refresh feedback
+        function showRefreshFeedback() {
+            const feedback = document.createElement('div');
+            feedback.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                background: var(--color-red);
+                color: white;
+                padding: 10px;
+                text-align: center;
+                z-index: 1000;
+                animation: slideDown 0.3s ease-out;
+            `;
+            feedback.textContent = 'Refreshing invoices...';
+            
+            document.body.appendChild(feedback);
+            
+            setTimeout(() => {
+                feedback.style.animation = 'slideUp 0.3s ease-out forwards';
+                setTimeout(() => {
+                    document.body.removeChild(feedback);
+                }, 300);
+            }, 1000);
+        }
+        
+        // Add CSS for animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideDown {
+                from { transform: translateY(-100%); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+            @keyframes slideUp {
+                from { transform: translateY(0); opacity: 1; }
+                to { transform: translateY(-100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
