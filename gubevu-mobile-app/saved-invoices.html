@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Invoices - Gubevu Electrical</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="saved-screen">
+        <div class="saved-header">
+            <button class="back-btn" onclick="goTo('dashboard.html')">← Back</button>
+            <h2>Saved Invoices</h2>
+            <div style="width: 60px;"></div>
+        </div>
+        
+        <div class="status-tabs">
+            <button class="tab active" onclick="showTab('drafts')">📝 Drafts</button>
+            <button class="tab" onclick="showTab('sent')">📤 Sent</button>
+            <button class="tab" onclick="showTab('paid')">✅ Paid</button>
+            <button class="tab" onclick="showTab('outstanding')">⏰ Outstanding</button>
+        </div>
+        
+        <div class="tab-content active" id="drafts-tab">
+            <div class="invoices-list" id="drafts-list">
+                <!-- Drafts will appear here -->
+                <div class="no-invoices">No draft invoices</div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="sent-tab">
+            <div class="invoices-list" id="sent-list">
+                <!-- Sent invoices will appear here -->
+                <div class="no-invoices">No sent invoices</div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="paid-tab">
+            <div class="invoices-list" id="paid-list">
+                <!-- Paid invoices will appear here -->
+                <div class="no-invoices">No paid invoices</div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="outstanding-tab">
+            <div class="invoices-list" id="outstanding-list">
+                <!-- Outstanding invoices will appear here -->
+                <div class="no-invoices">No outstanding invoices</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Check login
+        if (!localStorage.getItem('currentUser')) {
+            window.location.href = 'index.html';
+        }
+        
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active from all tab buttons
+            document.querySelectorAll('.tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Add active to clicked button
+            event.target.classList.add('active');
+            
+            // Load data for this tab
+            loadTabData(tabName);
+        }
+        
+        function loadTabData(tabName) {
+            let data = [];
+            const currentUser = localStorage.getItem('currentUser');
+            
+            switch(tabName) {
+                case 'drafts':
+                    data = JSON.parse(localStorage.getItem('drafts') || '[]')
+                        .filter(inv => inv.createdBy === currentUser);
+                    break;
+                case 'sent':
+                    data = JSON.parse(localStorage.getItem('sentInvoices') || '[]')
+                        .filter(inv => inv.createdBy === currentUser);
+                    break;
+                case 'paid':
+                    data = JSON.parse(localStorage.getItem('paidInvoices') || '[]')
+                        .filter(inv => inv.createdBy === currentUser);
+                    break;
+                case 'outstanding':
+                    // Sent but not paid
+                    const sent = JSON.parse(localStorage.getItem('sentInvoices') || '[]')
+                        .filter(inv => inv.createdBy === currentUser);
+                    const paidIds = JSON.parse(localStorage.getItem('paidInvoices') || '[]')
+                        .map(inv => inv.id);
+                    data = sent.filter(inv => !paidIds.includes(inv.id));
+                    break;
+            }
+            
+            renderList(tabName, data);
+        }
+        
+        function renderList(tabName, invoices) {
+            const container = document.getElementById(tabName + '-list');
+            
+            if (invoices.length === 0) {
+                container.innerHTML = '<div class="no-invoices">No ' + tabName + ' invoices</div>';
+                return;
+            }
+            
+            let html = '';
+            invoices.forEach(inv => {
+                // Calculate total
+                let total = 0;
+                inv.items.forEach(item => {
+                    total += item.total;
+                });
+                total += total * 0.15; // Include VAT
+                
+                html += `
+                <div class="invoice-card status-${tabName}">
+                    <div class="invoice-header">
+                        <span class="invoice-number">${inv.number}</span>
+                        <small class="invoice-client">${inv.client.company || 'No Client'}</small>
+                    </div>
+                    <div class="invoice-details">
+                        <span class="invoice-amount">R ${total.toFixed(2)}</span>
+                        <small class="invoice-date">${inv.date}</small>
+                    </div>
+                    <div class="invoice-actions">
+                        ${tabName === 'drafts' ? '<button onclick="editInvoice(\'' + inv.id + '\')">Edit</button>' : ''}
+                        <button onclick="viewInvoice(\'' + inv.id + '\')">View</button>
+                        <button onclick="markAsPaid(\'' + inv.id + '\')">✅ Paid</button>
+                        <button onclick="downloadInvoice(\'' + inv.id + '\')">📥 PDF</button>
+                    </div>
+                </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function editInvoice(id) {
+            // Load draft and go to edit
+            const drafts = JSON.parse(localStorage.getItem('drafts') || '[]');
+            const draft = drafts.find(d => d.id == id);
+            
+            if (draft) {
+                localStorage.setItem('currentClient', JSON.stringify(draft.client));
+                localStorage.setItem('currentItems', JSON.stringify(draft.items));
+                window.location.href = 'add-items.html';
+            }
+        }
+        
+        function markAsPaid(id) {
+            // Move from sent to paid
+            let sent = JSON.parse(localStorage.getItem('sentInvoices') || '[]');
+            let paid = JSON.parse(localStorage.getItem('paidInvoices') || '[]');
+            
+            const invoice = sent.find(inv => inv.id == id);
+            if (invoice) {
+                invoice.status = 'paid';
+                paid.push(invoice);
+                sent = sent.filter(inv => inv.id != id);
+                
+                localStorage.setItem('sentInvoices', JSON.stringify(sent));
+                localStorage.setItem('paidInvoices', JSON.stringify(paid));
+                
+                alert('Invoice marked as paid!');
+                loadTabData('sent');
+                loadTabData('paid');
+                loadTabData('outstanding');
+            }
+        }
+        
+        function downloadInvoice(id) {
+            alert('PDF download would open here');
+            // In real implementation, this would generate PDF
+        }
+        
+        function viewInvoice(id) {
+            alert('Viewing invoice ' + id);
+            // Could open a view-only preview
+        }
+        
+        // Load drafts on initial load
+        loadTabData('drafts');
+    </script>
+</body>
+</html>
