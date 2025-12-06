@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gubevu Electrical - Login</title>
+    <link rel="stylesheet" href="mobile-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Additional styles for login screen */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            animation: fadeIn 1s ease-out;
+        }
+        
+        .login-title {
+            font-size: 2.5rem;
+            color: var(--color-red);
+            text-align: center;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+        
+        .login-subtitle {
+            color: var(--color-medium-grey);
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 1rem;
+            max-width: 300px;
+        }
+        
+        .login-form {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--color-dark-grey);
+            border-radius: var(--border-radius-lg);
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .demo-note {
+            background: rgba(229, 57, 53, 0.1);
+            border: 1px solid var(--color-red);
+            border-radius: var(--border-radius-md);
+            padding: 15px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        .demo-note p {
+            color: var(--color-red);
+            font-size: 0.875rem;
+            margin-bottom: 0;
+            font-weight: 500;
+        }
+        
+        .powered-by {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: var(--color-medium-grey);
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .powered-by span {
+            color: var(--color-red);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-login">
+    <div class="login-container">
+        <!-- Logo Animation -->
+        <div class="logo-container">
+            <img src="assets/logo.png" alt="Gubevu Electrical" class="logo animate-pulse">
+        </div>
+        
+        <!-- App Title -->
+        <h1 class="login-title">Gubevu Electrical</h1>
+        <p class="login-subtitle">Professional Invoicing & Quotation System</p>
+        
+        <!-- Login Form -->
+        <div class="login-form animate-fade-in">
+            <div class="demo-note">
+                <p><i class="fas fa-info-circle"></i> Demo Mode - Select any user to continue</p>
+            </div>
+            
+            <h2 class="text-center mb-0">Welcome Back</h2>
+            <p class="text-center text-grey">Select your user profile</p>
+            
+            <div class="user-grid">
+                <!-- User 1 -->
+                <div class="user-card" onclick="selectUser('Admin User')">
+                    <div class="user-icon" style="font-size: 2rem; color: var(--color-red); margin-bottom: 10px;">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h3>Admin User</h3>
+                    <p>Full system access</p>
+                </div>
+                
+                <!-- User 2 -->
+                <div class="user-card" onclick="selectUser('Technician 1')">
+                    <div class="user-icon" style="font-size: 2rem; color: var(--color-red); margin-bottom: 10px;">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Technician 1</h3>
+                    <p>Field operations</p>
+                </div>
+                
+                <!-- User 3 -->
+                <div class="user-card" onclick="selectUser('Technician 2')">
+                    <div class="user-icon" style="font-size: 2rem; color: var(--color-red); margin-bottom: 10px;">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h3>Technician 2</h3>
+                    <p>Installation specialist</p>
+                </div>
+                
+                <!-- User 4 -->
+                <div class="user-card" onclick="selectUser('Office Manager')">
+                    <div class="user-icon" style="font-size: 2rem; color: var(--color-red); margin-bottom: 10px;">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h3>Office Manager</h3>
+                    <p>Administration & billing</p>
+                </div>
+                
+                <!-- User 5 -->
+                <div class="user-card" onclick="selectUser('Supervisor')">
+                    <div class="user-icon" style="font-size: 2rem; color: var(--color-red); margin-bottom: 10px;">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <h3>Supervisor</h3>
+                    <p>Quality control & oversight</p>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" onclick="login()" id="loginBtn" disabled>
+                <i class="fas fa-sign-in-alt"></i> Continue to Dashboard
+            </button>
+            
+            <p class="text-center text-grey mt-2" style="font-size: 0.75rem;">
+                <i class="fas fa-lock"></i> Secure login will be implemented in production
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="powered-by">
+            Powered by <span>Iciko Systems</span>
+        </div>
+    </div>
+    
+    <script src="shared-data.js"></script>
+    <script>
+        let selectedUser = null;
+        
+        // Function to select a user
+        function selectUser(username) {
+            // Remove selected class from all cards
+            document.querySelectorAll('.user-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked card
+            event.currentTarget.classList.add('selected');
+            
+            // Store selected user
+            selectedUser = username;
+            
+            // Enable login button
+            document.getElementById('loginBtn').disabled = false;
+            
+            // Add visual feedback
+            event.currentTarget.style.animation = 'pulse 0.5s';
+            setTimeout(() => {
+                event.currentTarget.style.animation = '';
+            }, 500);
+        }
+        
+        // Function to login
+        function login() {
+            if (!selectedUser) {
+                alert('Please select a user');
+                return;
+            }
+            
+            // Save user to localStorage
+            if (typeof GubevuData !== 'undefined') {
+                GubevuData.setCurrentUser(selectedUser);
+            } else {
+                localStorage.setItem('gubevu_current_user', selectedUser);
+            }
+            
+            // Show loading state
+            const btn = document.getElementById('loginBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            btn.disabled = true;
+            
+            // Redirect to dashboard after short delay
+            setTimeout(() => {
+                window.location.href = '02-dashboard.html';
+            }, 800);
+        }
+        
+        // Add keyboard support (Enter key to login)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && selectedUser) {
+                login();
+            }
+        });
+        
+        // Auto-select first user after 3 seconds (for demo)
+        setTimeout(() => {
+            if (!selectedUser) {
+                const firstUser = document.querySelector('.user-card');
+                if (firstUser) {
+                    firstUser.click();
+                }
+            }
+        }, 3000);
+    </script>
+</body>
+</html>
