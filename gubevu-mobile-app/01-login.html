@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Data Entry - Gubevu Electrical</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #121212 0%, #2C2C2C 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #c96062;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        p {
+            color: #999;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .login-btn {
+            background: #c96062;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            width: 100%;
+            margin-bottom: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .skip-btn {
+            background: transparent;
+            color: #999;
+            border: 1px solid #444;
+            padding: 12px 30px;
+            font-size: 14px;
+            border-radius: 5px;
+            width: 100%;
+            cursor: pointer;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo -->
+        <img src="assets/logo.png" alt="Gubevu Electrical" class="logo">
+        
+        <!-- Title -->
+        <h1>Gubevu Electrical</h1>
+        <p>Mobile Data Entry for Invoices & Quotes</p>
+        
+        <!-- Login Button -->
+        <button class="login-btn" onclick="startDataEntry()">
+            Start Data Entry
+        </button>
+        
+        <!-- Skip Button -->
+        <button class="skip-btn" onclick="skipLogin()">
+            Skip Login (Demo Mode)
+        </button>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>Created by Iciko Systems</p>
+        </div>
+    </div>
+    
+    <script>
+        function startDataEntry() {
+            // Save current user
+            localStorage.setItem('mobile_user', 'Field Technician');
+            // Go to client form
+            window.location.href = '02-client.html';
+        }
+        
+        function skipLogin() {
+            // Save demo user
+            localStorage.setItem('mobile_user', 'Demo User');
+            // Go to client form
+            window.location.href = '02-client.html';
+        }
+    </script>
+</body>
+</html>
