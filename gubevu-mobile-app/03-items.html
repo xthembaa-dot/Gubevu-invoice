@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Add Items - Gubevu Electrical</title>
     <style>
         * {
@@ -91,7 +91,7 @@
         
         /* Add Item Button */
         .add-btn {
-            background: #000;
+            background: #c96062;
             color: white;
             border: none;
             padding: 12px;
@@ -99,6 +99,7 @@
             border-radius: 5px;
             cursor: pointer;
             margin-top: 10px;
+            font-size: 16px;
         }
         
         /* Items List */
@@ -118,6 +119,7 @@
         .item-desc {
             font-weight: bold;
             margin-bottom: 5px;
+            color: white;
         }
         
         .item-details {
@@ -200,6 +202,19 @@
             color: #666;
             font-size: 12px;
         }
+        
+        /* Make sure buttons are visible and clickable */
+        button {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+        }
+        
+        /* Active state for buttons */
+        .add-btn:active, .btn:active {
+            transform: scale(0.98);
+        }
     </style>
 </head>
 <body>
@@ -239,7 +254,9 @@
                 <input type="number" id="itemPrice" placeholder="0.00" min="0" step="0.01">
             </div>
             
-            <button class="add-btn" onclick="addItem()">+ Add Item</button>
+            <button class="add-btn" onclick="addItem()" id="addItemBtn">
+                + Add Item
+            </button>
         </div>
         
         <!-- Items List -->
@@ -255,8 +272,12 @@
         
         <!-- Action Buttons -->
         <div class="action-buttons">
-            <button class="btn clear-btn" onclick="clearItems()">Clear All</button>
-            <button class="btn next-btn" onclick="saveAndContinue()">Next: Save →</button>
+            <button class="btn clear-btn" onclick="clearItems()" id="clearBtn">
+                Clear All
+            </button>
+            <button class="btn next-btn" onclick="saveAndContinue()" id="nextBtn">
+                Next: Preview →
+            </button>
         </div>
         
         <!-- Step Indicator -->
@@ -273,37 +294,60 @@
     </div>
     
     <script>
+        // Initialize items array
         let items = [];
         
-        // Load saved items
-        window.onload = function() {
-            const savedItems = localStorage.getItem('mobile_items');
-            if (savedItems) {
-                items = JSON.parse(savedItems);
-                renderItems();
-            }
+        // Load saved items when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSavedItems();
+            updateItemCount();
             
-            // Load client info for confirmation
+            // Focus on description field
+            document.getElementById('itemDescription').focus();
+            
+            // Load client name for context
             const client = JSON.parse(localStorage.getItem('mobile_client') || '{}');
             if (client.name) {
+                // Update placeholder with client name
                 document.getElementById('itemDescription').placeholder = 
                     `Item for ${client.name.substring(0, 30)}...`;
             }
-        };
+            
+            // Add event listener for Enter key in description
+            document.getElementById('itemDescription').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addItem();
+                }
+            });
+            
+            // Add event listener for Enter key in price
+            document.getElementById('itemPrice').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addItem();
+                }
+            });
+        });
         
+        // Go back to client page
         function goBack() {
             if (confirm('Go back to client info?')) {
                 window.location.href = '02-client.html';
             }
         }
         
+        // Add new item
         function addItem() {
+            console.log('Add Item button clicked');
+            
+            // Get values from form
             const activity = document.getElementById('itemActivity').value;
             const description = document.getElementById('itemDescription').value.trim();
-            const quantity = parseFloat(document.getElementById('itemQty').value);
-            const price = parseFloat(document.getElementById('itemPrice').value);
+            const quantity = parseFloat(document.getElementById('itemQty').value) || 1;
+            const price = parseFloat(document.getElementById('itemPrice').value) || 0;
             
-            // Validate
+            // Validate inputs
             if (!description) {
                 alert('Please enter item description');
                 document.getElementById('itemDescription').focus();
@@ -319,9 +363,9 @@
             // Calculate line total
             const lineTotal = quantity * price;
             
-            // Add item
+            // Create item object
             const item = {
-                id: Date.now(),
+                id: Date.now(), // Unique ID
                 activity: activity,
                 description: description,
                 quantity: quantity,
@@ -329,36 +373,75 @@
                 lineTotal: lineTotal
             };
             
+            console.log('Adding item:', item);
+            
+            // Add to items array
             items.push(item);
-            saveItems();
+            
+            // Save to localStorage
+            saveItemsToStorage();
+            
+            // Update display
             renderItems();
             
-            // Clear form
+            // Clear form fields (except activity and quantity)
             document.getElementById('itemDescription').value = '';
             document.getElementById('itemPrice').value = '';
-            document.getElementById('itemQty').value = '1';
+            
+            // Focus back on description
             document.getElementById('itemDescription').focus();
+            
+            // Show success feedback
+            showSuccess('Item added');
         }
         
+        // Delete an item
         function deleteItem(itemId) {
-            items = items.filter(item => item.id !== itemId);
-            saveItems();
-            renderItems();
-        }
-        
-        function clearItems() {
-            if (items.length === 0) return;
-            if (confirm('Clear all items?')) {
-                items = [];
-                saveItems();
+            if (confirm('Delete this item?')) {
+                items = items.filter(item => item.id !== itemId);
+                saveItemsToStorage();
                 renderItems();
             }
         }
         
-        function saveItems() {
-            localStorage.setItem('mobile_items', JSON.stringify(items));
+        // Clear all items
+        function clearItems() {
+            if (items.length === 0) {
+                alert('No items to clear');
+                return;
+            }
+            
+            if (confirm('Clear all items?')) {
+                items = [];
+                saveItemsToStorage();
+                renderItems();
+                alert('All items cleared');
+            }
         }
         
+        // Save items to localStorage
+        function saveItemsToStorage() {
+            localStorage.setItem('mobile_items', JSON.stringify(items));
+            console.log('Items saved to storage:', items);
+            updateItemCount();
+        }
+        
+        // Load saved items from localStorage
+        function loadSavedItems() {
+            const savedItems = localStorage.getItem('mobile_items');
+            if (savedItems) {
+                try {
+                    items = JSON.parse(savedItems);
+                    console.log('Loaded items from storage:', items);
+                    renderItems();
+                } catch (e) {
+                    console.error('Error loading items:', e);
+                    items = [];
+                }
+            }
+        }
+        
+        // Render items list
         function renderItems() {
             const container = document.getElementById('itemsList');
             const emptyState = document.getElementById('emptyState');
@@ -389,45 +472,113 @@
             container.innerHTML = html;
         }
         
-        function saveAndContinue() {
-    if (items.length === 0) {
-        alert('Please add at least one item before continuing');
-        return;
-    }
-    
-    // Save current items to session
-    const sessionData = GubevuData.getSessionData();
-    sessionData.items = items;
-    GubevuData.saveSessionData(sessionData);
-    
-    // Calculate totals and save
-    calculateAndSaveTotals();
-    
-    // Redirect to PREVIEW instead of save
-    window.location.href = `05-preview.html`;
-}
-
-// Add this new function
-function calculateAndSaveTotals() {
-    let subtotal = 0;
-    let vat = 0;
-    let total = 0;
-    
-    items.forEach(item => {
-        subtotal += item.lineTotal;
-        vat += item.lineTotal * 0.15;
-    });
-    
-    total = subtotal + vat;
-    
-    // Save totals to localStorage
-    localStorage.setItem('mobile_totals', JSON.stringify({
-        subtotal: subtotal,
-        vat: vat,
-        total: total
-    }));
-}
+        // Update item count display
+        function updateItemCount() {
+            // Optional: You can add a counter display
+            console.log(`Total items: ${items.length}`);
         }
+        
+        // Save and continue to preview
+        function saveAndContinue() {
+            console.log('Save and Continue button clicked');
+            
+            if (items.length === 0) {
+                alert('Please add at least one item before continuing');
+                return;
+            }
+            
+            // Calculate totals
+            let subtotal = 0;
+            let vat = 0;
+            
+            items.forEach(item => {
+                subtotal += item.lineTotal;
+            });
+            
+            vat = subtotal * 0.15;
+            const total = subtotal + vat;
+            
+            // Save totals to localStorage
+            localStorage.setItem('mobile_totals', JSON.stringify({
+                subtotal: subtotal,
+                vat: vat,
+                total: total
+            }));
+            
+            console.log('Totals calculated:', { subtotal, vat, total });
+            
+            // Save items one more time
+            saveItemsToStorage();
+            
+            // Show loading state
+            const nextBtn = document.getElementById('nextBtn');
+            const originalText = nextBtn.innerHTML;
+            nextBtn.innerHTML = 'Loading...';
+            nextBtn.disabled = true;
+            
+            // Wait a moment then redirect
+            setTimeout(() => {
+                window.location.href = '05-preview.html';
+            }, 500);
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            // Create a temporary success message
+            const successDiv = document.createElement('div');
+            successDiv.textContent = message;
+            successDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #4CAF50;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 5px;
+                z-index: 1000;
+                animation: slideIn 0.3s ease-out;
+            `;
+            
+            document.body.appendChild(successDiv);
+            
+            setTimeout(() => {
+                successDiv.style.animation = 'slideOut 0.3s ease-out forwards';
+                setTimeout(() => {
+                    document.body.removeChild(successDiv);
+                }, 300);
+            }, 1500);
+            
+            // Add CSS animations
+            if (!document.querySelector('#success-animations')) {
+                const style = document.createElement('style');
+                style.id = 'success-animations';
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes slideOut {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(100%); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+        
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + Enter: Add item
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                addItem();
+            }
+            // Ctrl/Cmd + S: Save and continue
+            else if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                saveAndContinue();
+            }
+        });
     </script>
 </body>
 </html>
