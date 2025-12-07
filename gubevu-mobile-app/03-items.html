@@ -390,32 +390,43 @@
         }
         
         function saveAndContinue() {
-            if (items.length === 0) {
-                alert('Please add at least one item');
-                return;
-            }
-            
-            // Save items
-            saveItems();
-            
-            // Calculate totals
-            let subtotal = 0;
-            items.forEach(item => {
-                subtotal += item.lineTotal;
-            });
-            
-            const vat = subtotal * 0.15;
-            const total = subtotal + vat;
-            
-            // Save totals
-            localStorage.setItem('mobile_totals', JSON.stringify({
-                subtotal: subtotal,
-                vat: vat,
-                total: total
-            }));
-            
-            // Go to save page
-            window.location.href = '04-save.html';
+    if (items.length === 0) {
+        alert('Please add at least one item before continuing');
+        return;
+    }
+    
+    // Save current items to session
+    const sessionData = GubevuData.getSessionData();
+    sessionData.items = items;
+    GubevuData.saveSessionData(sessionData);
+    
+    // Calculate totals and save
+    calculateAndSaveTotals();
+    
+    // Redirect to PREVIEW instead of save
+    window.location.href = `05-preview.html`;
+}
+
+// Add this new function
+function calculateAndSaveTotals() {
+    let subtotal = 0;
+    let vat = 0;
+    let total = 0;
+    
+    items.forEach(item => {
+        subtotal += item.lineTotal;
+        vat += item.lineTotal * 0.15;
+    });
+    
+    total = subtotal + vat;
+    
+    // Save totals to localStorage
+    localStorage.setItem('mobile_totals', JSON.stringify({
+        subtotal: subtotal,
+        vat: vat,
+        total: total
+    }));
+}
         }
     </script>
 </body>
